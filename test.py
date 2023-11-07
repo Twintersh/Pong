@@ -10,7 +10,7 @@ def add_task(task):
 def view_tasks():
     if todo_list:
         print("To-Do List:")
-        for index, task in enumerate(todo_list)
+        for index, task in enumerate(todo_list):
             status = "X" if task["completed"] else " "
             print(f"{index + 1}. [{status}] {task['task']}")
     else:
