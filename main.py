@@ -1,4 +1,6 @@
 import pygame
+import random
+from math import * 
 
 pygame.init()
 
@@ -6,18 +8,19 @@ WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 HEIGHT = 480
 WIDTH = 640
+MAX_ANGLE = 55 # default value : 55
 
 paddleHeight=100 # default value: 100
 paddleWidth=10 # default value: 10
-paddleSpeed=10 # default value: 10
+paddleSpeed=15 # default value: 15
 paddleMinHeight=50 # default value: 50
 paddleDestruction=7 # default value:7
 paddleColor=WHITE # default value: WHITE
 
-ballColor=RED # default value: WHITE
+ballColor=WHITE # default value: WHITE
 ballRadius=7 # default value: 7
-ballSpeed=4 # default value: 4
-ballAcceleration=1.1 # default value: 1.1
+ballSpeed=5 # default value: 5
+ballAcceleration=1.2 # default value: 1.2
 ballMaxSpeed=7 # default value: 7
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -34,6 +37,7 @@ class Ball:
 		self.radius = radius
 		self.speedX = speed
 		self.speedY = speed
+		self.curSpeed = speed
 		self.speed = speed
 		self.acce = acce
 		self.color = color
@@ -51,9 +55,10 @@ class Ball:
 			else:
 				score[1] += 1 
 			self.posx = WIDTH/2
-			self.posy = HEIGHT/2
+			self.posy = random.randint(HEIGHT * 0.25, HEIGHT * 0.75)
 			self.speedX = (abs(self.speedX)/self.speedX) * -self.speed # (abs(self.speedX/self.speedX)) to keep the current sign of speedX
 			self.speedY = (abs(self.speedY)/self.speedY) * self.speed
+			self.curSpeed = self.speed
 			paddles[0].height = paddleHeight
 			paddles[1].height = paddleHeight
 		if (self.posy >= HEIGHT or self.posy <= 0):
@@ -62,13 +67,23 @@ class Ball:
 		self.posy += self.speedY
 		self.display()	
 
-	def hit(self):
-		if (abs(self.speedX) < ballMaxSpeed):
-			self.speedX *= -self.acce
-			self.speedY *= self.acce
-		elif (abs(self.speedX) >= ballMaxSpeed):
-			self.speedX = (abs(self.speedX)/self.speedX) * -ballMaxSpeed
-			self.speedY = (abs(self.speedY)/self.speedY) * ballMaxSpeed
+	def hit(self, paddle):
+		hitPoint = self.posy - (paddle.posy + paddle.height/2)
+		angle = (2* MAX_ANGLE * hitPoint) / paddle.height
+		if (angle == 0):
+			angle = 0.1
+
+		if (abs(self.curSpeed) < ballMaxSpeed):
+			self.curSpeed *= self.acce
+		elif (abs(self.speed) >= ballMaxSpeed):
+			self.curSpeed = (abs(self.curSpeed)/self.curSpeed) * -ballMaxSpeed
+
+		self.speedY = self.curSpeed * sin(radians(angle))
+		self.speedX = self.curSpeed * cos(radians(angle))
+
+		if (self.posx >= WIDTH/2):
+			self.speedX *= -1
+
 
 	
 	def getBall(self):
@@ -152,10 +167,10 @@ def main():
 					move2 = 0
 
 		if pygame.Rect.colliderect(circle.getBall(), paddle1.getRect()):
-			circle.hit()
+			circle.hit(paddle1)
 			paddle1.hit()
 		if pygame.Rect.colliderect(circle.getBall(), paddle2.getRect()):
-			circle.hit()
+			circle.hit(paddle2)
 			paddle2.hit()
 
 		paddle1.display(move1)
