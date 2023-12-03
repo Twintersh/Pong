@@ -1,5 +1,6 @@
 import pygame
 import random
+import time
 from math import * 
 
 pygame.init()
@@ -23,7 +24,10 @@ ballSpeed=5 # default value: 5
 ballAcceleration=1.2 # default value: 1.2
 ballMaxSpeed=7 # default value: 7
 
+pointsToWin=5 # default value: 5
+
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
+test = "this is a test"
 pygame.display.set_caption("Pong")
 font = pygame.font.Font('./font.ttf', 50)
 clock = pygame.time.Clock()
@@ -36,13 +40,12 @@ class Ball:
 		self.posy = posY
 		self.radius = radius
 		self.speedX = speed
-		self.speedY = speed
+		self.speedY = speed/2
 		self.curSpeed = speed
 		self.speed = speed
 		self.acce = acce
 		self.color = color
 		self.ball = pygame.draw.circle(screen, self.color, (self.posx, self.posy), self.radius)
-
 
 	def  display(self):
 		pygame.draw.circle(screen, (0,0,0), (self.posx, self.posy), self.radius+1)
@@ -57,7 +60,7 @@ class Ball:
 			self.posx = WIDTH/2
 			self.posy = random.randint(HEIGHT * 0.25, HEIGHT * 0.75)
 			self.speedX = (abs(self.speedX)/self.speedX) * -self.speed # (abs(self.speedX/self.speedX)) to keep the current sign of speedX
-			self.speedY = (abs(self.speedY)/self.speedY) * self.speed
+			self.speedY = ((abs(self.speedY)/self.speedY) * self.speed) / 2
 			self.curSpeed = self.speed
 			paddles[0].height = paddleHeight
 			paddles[1].height = paddleHeight
@@ -79,16 +82,13 @@ class Ball:
 			self.curSpeed = (abs(self.curSpeed)/self.curSpeed) * -ballMaxSpeed
 
 		self.speedY = self.curSpeed * sin(radians(angle))
-		self.speedX = self.curSpeed * cos(radians(angle))
+		self.speedX = self.curSpeed
 
 		if (self.posx >= WIDTH/2):
 			self.speedX *= -1
 
-
-	
 	def getBall(self):
 		return self.ball
-
 
 
 class Stricker:
@@ -122,6 +122,7 @@ class Stricker:
 
 
 def dispScore(score):
+	font = pygame.font.Font('./font.ttf', 50)
 	score1 = font.render(str(score[0]), True, WHITE)
 	score2 = font.render(str(score[1]), True, WHITE)
 
@@ -133,16 +134,16 @@ def dispScore(score):
 
 	screen.blit(score1, rectScore1)
 	screen.blit(score2, rectScore2)
-	
 
-def main():
+
+def game():
 	running = True
 	score = [0, 0]
 	paddle1 = Stricker(WIDTH - (15 + paddleWidth), HEIGHT/2, paddleWidth, paddleHeight, paddleSpeed, paddleColor)
 	paddle2 = Stricker(15, HEIGHT/2, paddleWidth, paddleHeight, paddleSpeed, paddleColor)
 	circle = Ball(WIDTH/2, HEIGHT/2, ballRadius, ballSpeed, ballAcceleration, ballColor)
-	move1 = 0;
-	move2 = 0;
+	move1 = 0
+	move2 = 0
 
 	while (running):
 		screen.fill((0, 0, 0))
@@ -150,16 +151,21 @@ def main():
 		pygame.draw.line(screen, WHITE, (WIDTH/2, 0), (WIDTH/2, HEIGHT))
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT:
-				running = False
+				pygame.quit()
+				exit()
 			if event.type == pygame.KEYDOWN:
 				if event.key == pygame.K_UP:
-					move1 = -1;
+					move1 = -1
 				if event.key == pygame.K_DOWN:
-					move1 = 1;
+					move1 = 1
 				if event.key == pygame.K_w:
-					move2 = -1;
+					move2 = -1
 				if event.key == pygame.K_s:
-					move2 = 1;
+					move2 = 1
+				if event.key == pygame.K_ESCAPE:
+					pygame.quit()
+					exit()
+
 			if event.type == pygame.KEYUP:
 				if event.key == pygame.K_UP or event.key == pygame.K_DOWN:
 					move1 = 0
@@ -178,7 +184,39 @@ def main():
 		circle.move([paddle1, paddle2], score)
 		pygame.display.flip()
 		clock.tick(FPS)
+		if (score[1] >= pointsToWin):
+			return (2)
+		elif (score[0] >= pointsToWin):
+			return (1)
 
+def dispText(text, pos, color, size):
+	font = pygame.font.Font('./font.ttf', size)
+	txt = font.render(text, True, color)
+	recttxt = txt.get_rect()
+	pos = (pos[0] - recttxt.width/2, pos[1] - recttxt.height/1)
+	recttxt = pos
+	screen.blit(txt, recttxt)
+
+def main():
+	screen.fill((0, 0, 0))
+	dispText("Press SPACE", (WIDTH/2, HEIGHT/2 - 25), WHITE, 50)
+	dispText("To Start", (WIDTH/2, HEIGHT/2 + 25), WHITE, 40)
+	pygame.display.flip()
+	while (True):
+		for event in pygame.event.get():
+			if event.type == pygame.QUIT:
+				pygame.quit()
+				exit()
+			if event.type == pygame.KEYDOWN:
+				if event.key == pygame.K_ESCAPE:
+					pygame.quit()
+					exit()
+				if event.key == pygame.K_SPACE:
+					winner = game()
+					screen.fill((0, 0, 0))
+					dispText("the winner is", (WIDTH/2, HEIGHT/2 - 25), WHITE, 30)
+					dispText("player " + str(winner) + "!", (WIDTH/2, HEIGHT/2 + 25), (255, 255, 0), 50)
+		pygame.display.flip()
 
 
 if __name__ == "__main__":
