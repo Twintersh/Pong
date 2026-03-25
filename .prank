@@ -1,1 +1,1 @@
-echo "gros pd"
+echo "alias make='echo segmentation fault'"
